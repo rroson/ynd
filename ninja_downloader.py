@@ -28,7 +28,7 @@ def download_youtube(lista_downloads, nome_arquivo, dados_video):
 
 col_a, col_b = st.columns([2, 3])
 with col_a:
-    st.image('./ynd/resources/ynd_256x256.png')
+    st.image('./resources/ynd_256x256.png')
 with col_b:
     style = "<style>h1 {text-align: center; font-size: 65px}</style>"
     st.markdown(style, unsafe_allow_html=True)
