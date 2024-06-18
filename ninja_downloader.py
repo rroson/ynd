@@ -53,7 +53,12 @@ if link:
         st.markdown(f"[{dados_video.title}]({dados_video.watch_url})")
     st.info(f"Duração: {dados_video.length} segundos")
     
-    lista_streaming = list(dados_video.streams.filter(progressive=True))
+    try:
+        lista_streaming = list(dados_video.streams.filter(progressive=True))
+    except Exception as err:
+        st.warning(f"Unexpected {err=}, {type(err)=}")
+        raise
+        
     audio = dados_video.streams.filter(only_audio=True).first()
     
     st.divider()
