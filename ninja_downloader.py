@@ -54,7 +54,7 @@ if link:
     st.info(f"Duração: {dados_video.length} segundos")
     
     try:
-        lista_streaming = list(dados_video.streams.filter(progressive=True))
+        lista_streaming = dados_video.streams.filter(progressive=True)
     except Exception as err:
         st.warning(f"Unexpected {err=}, {type(err)=}")
         raise
@@ -69,13 +69,11 @@ if link:
     lista_downloads = {}
 
     with st.container(border=True):
-        itens = 1
-        checked_audio = st.checkbox(f"{itens} - Tipo: {audio.mime_type}  -  Itag: {audio.itag}", value=False)
+        checked_audio = st.checkbox(f"{1} - Tipo: {audio.mime_type}  -  Itag: {audio.itag}", value=False)
         if checked_audio:
             lista_downloads[audio.itag] = "Arquivo de Audio .m4a"
         for i in range(len(lista_streaming)):
-            itens += 1
-            checked = st.checkbox(f"{itens} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
+            checked = st.checkbox(f"{i} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
             if checked:
                 lista_downloads[lista_streaming[i].itag] = lista_streaming[i].resolution[-4:]
 
@@ -93,8 +91,6 @@ if link:
             st.success("Download(s) concluído na pasta Downloads!")
             # reiniciar a pagina da aplicação removendo todos os widgets
             
-
-
     #Mostrar lista de downloads na tela
     st.text("Lista de downloads:")
     for itag, stream in lista_downloads.items():
