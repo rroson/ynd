@@ -2,7 +2,7 @@
 Youtube Ninja Downloader. Baixe audio e vídeo do Youtube de maneira rápida e eficiente.
 """
 import streamlit as st
-from pytube import YouTube
+from pytubefix import YouTube
 import re
 import os
 # from pytube.cli import on_progress
@@ -45,6 +45,7 @@ if link:
         dados_video = YouTube(link)
     except:
         st.warning('Link inválido')
+        st.stop()
 
     col_a, col_b = st.columns(2)
     with col_a:
