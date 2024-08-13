@@ -1,0 +1,3 @@
+ToDO:
+# Resolver gravação de arquivo na pasta com streamlit
+# Colocar barra de progresso no download e na conversão dos arquivos
