@@ -70,7 +70,9 @@ def unir_video_audio(arquivo_video, arquivo_audio, diretorio):
 
     output_filename = f"{arquivo_video[:-4]}_video_com_audio.mp4"
     output_path = os.path.join(diretorio, output_filename)
-    video_with_audio.write_videofile(output_path, codec="libx264", audio_codec="aac")
+    
+    with st.spinner('Convertendo Vídeo, Agurade...'):
+        video_with_audio.write_videofile(output_path, codec="libx264", audio_codec="aac", verbose=False, logger=None)
 
     video.close()
     audio.close()
@@ -78,11 +80,26 @@ def unir_video_audio(arquivo_video, arquivo_audio, diretorio):
     os.remove(video_path)
     os.remove(audio_path)
 
+def converter_mp3(arquivo_audio, diretorio):
+    diretorio = diretorio
+    audio_filename = arquivo_audio
+    audio_path = os.path.join(diretorio, audio_filename)
+
+    audio = AudioFileClip(audio_path)
+
+    output_filename = f"{arquivo_audio[:-4]}.mp3"
+    output_path = os.path.join(diretorio, output_filename)
+
+    with st.spinner('Convertendo Áudio, Agurade...'):
+        audio.write_audiofile(output_path)
+
+    audio.close()
+    os.remove(audio_path)
 
 def download_youtube(lista_downloads, nome_arquivo, dados_video):
     key = 0
-    if len(lista_downloads) == 0:
-        return(0)
+    if not lista_downloads:
+        return(False)
     else:
         home = os.path.expanduser('~')
         if os.path.join(home, 'Downloads'):
@@ -92,16 +109,19 @@ def download_youtube(lista_downloads, nome_arquivo, dados_video):
         for itag, stream in lista_downloads.items():
             if itag == 140:
                 nome_arquivo_audio = f"{nome_arquivo}.m4a"
-                dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_audio)
+                with st.spinner('Baixando áudio, Agurade...'):
+                    dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_audio)
+                converter_mp3(nome_arquivo_audio, diretorio)
                 key += 1
             else:
                 nome_arquivo_video = f"{nome_arquivo}_{stream}.mp4"
-                dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_video)
+                with st.spinner('Baixando Vídeo, Agurade...'):
+                    dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_video)
                 key += 1
         if key == 2:
             unir_video_audio(nome_arquivo_video, nome_arquivo_audio, diretorio)
 
-        return(1)
+        return(True)
 
 col_a, col_b = st.columns([2, 3])
 with col_a:
@@ -110,6 +130,7 @@ with col_b:
     style = "<style>h1 {text-align: center; font-size: 65px}</style>"
     st.markdown(style, unsafe_allow_html=True)
     st.title("Youtube Ninja Downloader")
+    st.markdown("Criado por: Prof. Ricardo Roson")
 
 link = st.text_input(
     'Cole o link do Youtube aqui e pressione Enter',
@@ -158,25 +179,18 @@ if link:
 
     retorno = st.button(
         "Download",
-        on_click=download_youtube,
-        args=(lista_downloads, nome_arquivo, dados_video),
         type="primary",
     )
 
     if retorno:
-        if retorno == False:
-            st.warning("Nenhum item selecionado!")
+        resultado = download_youtube(lista_downloads, nome_arquivo, dados_video)
+        if resultado:
+            st.success("Download(s) concluído(s) na pasta Downloads!")
+            st.stop()
         else:
-            st.success("Download(s) concluído na pasta Downloads!")
-            # reiniciar a pagina da aplicação removendo todos os widgets
+            st.warning("Nenhum item selecionado!")
             
     #Mostrar lista de downloads na tela
     st.text("Lista de downloads:")
     for itag, stream in lista_downloads.items():
         st.text(f"Itag {itag}: Baixar Vídeo: {stream}")
-    
-
-
-
-    
-
