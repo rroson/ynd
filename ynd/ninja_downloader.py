@@ -95,6 +95,7 @@ def converter_mp3(arquivo_audio, diretorio):
 
     audio.close()
     os.remove(audio_path)
+    return(output_filename)
 
 def download_youtube(lista_downloads, nome_arquivo, dados_video):
     key = 0
@@ -111,7 +112,7 @@ def download_youtube(lista_downloads, nome_arquivo, dados_video):
                 nome_arquivo_audio = f"{nome_arquivo}.m4a"
                 with st.spinner('Baixando áudio, Agurade...'):
                     dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_audio)
-                converter_mp3(nome_arquivo_audio, diretorio)
+                nome_arquivo_audio = converter_mp3(nome_arquivo_audio, diretorio)
                 key += 1
             else:
                 nome_arquivo_video = f"{nome_arquivo}_{stream}.mp4"
