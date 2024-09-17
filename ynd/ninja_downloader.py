@@ -2,12 +2,21 @@
 Youtube Ninja Downloader. Baixe audio e vídeo do Youtube de maneira rápida e eficiente.
 """
 import streamlit as st
+from streamlit_js_eval import streamlit_js_eval
 from pytube import YouTube
 from pytube.innertube import _default_clients
 from pytube import cipher
 from moviepy.editor import VideoFileClip, AudioFileClip
 import re
 import os
+from time import sleep
+
+
+HOME = os.path.expanduser('~')
+if os.path.join(HOME, 'Downloads'):
+    DIRETORIO = os.path.join(HOME, 'Downloads')
+else:
+    DIRETORIO = HOME
 
 _default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
 _default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -55,13 +64,12 @@ def get_throttling_function_name(js: str) -> str:
 
 cipher.get_throttling_function_name = get_throttling_function_name
 
-def unir_video_audio(arquivo_video, arquivo_audio, diretorio):
-    diretorio = diretorio
+def unir_video_audio(arquivo_video, arquivo_audio):
     video_filename = arquivo_video
     audio_filename = arquivo_audio
 
-    video_path = os.path.join(diretorio, video_filename)
-    audio_path = os.path.join(diretorio, audio_filename)
+    video_path = os.path.join(DIRETORIO, video_filename)
+    audio_path = os.path.join(DIRETORIO, audio_filename)
 
     video = VideoFileClip(video_path)
     audio = AudioFileClip(audio_path)
@@ -69,10 +77,10 @@ def unir_video_audio(arquivo_video, arquivo_audio, diretorio):
     video_with_audio = video.set_audio(audio)
 
     output_filename = f"{arquivo_video[:-4]}_video_com_audio.mp4"
-    output_path = os.path.join(diretorio, output_filename)
+    output_path = os.path.join(DIRETORIO, output_filename)
     
     with st.spinner('Convertendo Vídeo, Agurade...'):
-        video_with_audio.write_videofile(output_path, codec="libx264", audio_codec="aac", verbose=False, logger=None)
+        video_with_audio.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
     video.close()
     audio.close()
@@ -80,15 +88,14 @@ def unir_video_audio(arquivo_video, arquivo_audio, diretorio):
     os.remove(video_path)
     os.remove(audio_path)
 
-def converter_mp3(arquivo_audio, diretorio):
-    diretorio = diretorio
+def converter_mp3(arquivo_audio):
     audio_filename = arquivo_audio
-    audio_path = os.path.join(diretorio, audio_filename)
+    audio_path = os.path.join(DIRETORIO, audio_filename)
 
     audio = AudioFileClip(audio_path)
 
     output_filename = f"{arquivo_audio[:-4]}.mp3"
-    output_path = os.path.join(diretorio, output_filename)
+    output_path = os.path.join(DIRETORIO, output_filename)
 
     with st.spinner('Convertendo Áudio, Agurade...'):
         audio.write_audiofile(output_path)
@@ -102,25 +109,20 @@ def download_youtube(lista_downloads, nome_arquivo, dados_video):
     if not lista_downloads:
         return(False)
     else:
-        home = os.path.expanduser('~')
-        if os.path.join(home, 'Downloads'):
-            diretorio = os.path.join(home, 'Downloads')
-        else:
-            diretorio = home
         for itag, stream in lista_downloads.items():
             if itag == 140:
                 nome_arquivo_audio = f"{nome_arquivo}.m4a"
                 with st.spinner('Baixando áudio, Agurade...'):
-                    dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_audio)
-                nome_arquivo_audio = converter_mp3(nome_arquivo_audio, diretorio)
+                    dados_video.streams.get_by_itag(itag).download(output_path=DIRETORIO, filename=nome_arquivo_audio)
+                nome_arquivo_audio = converter_mp3(nome_arquivo_audio)
                 key += 1
             else:
                 nome_arquivo_video = f"{nome_arquivo}_{stream}.mp4"
                 with st.spinner('Baixando Vídeo, Agurade...'):
-                    dados_video.streams.get_by_itag(itag).download(output_path=diretorio, filename=nome_arquivo_video)
+                    dados_video.streams.get_by_itag(itag).download(output_path=DIRETORIO, filename=nome_arquivo_video)
                 key += 1
         if key == 2:
-            unir_video_audio(nome_arquivo_video, nome_arquivo_audio, diretorio)
+            unir_video_audio(nome_arquivo_video, nome_arquivo_audio)
 
         return(True)
 
@@ -174,9 +176,9 @@ if link:
         if checked_audio:
             lista_downloads[audio.itag] = "Arquivo_de_Audio"
         for i in range(len(lista_streaming)):
-            checked = st.checkbox(f"{i} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
+            checked = st.checkbox(f"{i+2} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
             if checked:
-                lista_downloads[lista_streaming[i].itag] = lista_streaming[i].resolution[-4:]
+                lista_downloads[lista_streaming[i+2].itag] = lista_streaming[i+2].resolution[-4:]
 
     retorno = st.button(
         "Download",
@@ -186,12 +188,14 @@ if link:
     if retorno:
         resultado = download_youtube(lista_downloads, nome_arquivo, dados_video)
         if resultado:
-            st.success("Download(s) concluído(s) na pasta Downloads!")
-            st.stop()
+            st.success(f"Download(s) concluído(s) na pasta {DIRETORIO}!")
+            sleep(5)
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
         else:
             st.warning("Nenhum item selecionado!")
             
     #Mostrar lista de downloads na tela
     st.text("Lista de downloads:")
-    for itag, stream in lista_downloads.items():
-        st.text(f"Itag {itag}: Baixar Vídeo: {stream}")
+    with st.spinner('Verificando Downloads, Agurade...'):
+        for itag, stream in lista_downloads.items():
+            st.text(f"Itag {itag}: Baixar Vídeo: {stream}")
