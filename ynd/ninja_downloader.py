@@ -126,6 +126,7 @@ def download_youtube(lista_downloads, nome_arquivo, dados_video):
 
         return(True)
 
+# //////////////////////// Front End ////////////////////////////
 col_a, col_b = st.columns([2, 3])
 with col_a:
     st.image('./resources/ynd_256x256.png')
@@ -180,16 +181,23 @@ if link:
             if checked:
                 lista_downloads[lista_streaming[i+2].itag] = lista_streaming[i+2].resolution[-4:]
 
+    def desliga_botao():
+        st.session_state.button_clicked = True
+
+    if 'button_clicked' not in st.session_state:
+        st.session_state.button_clicked = False
     retorno = st.button(
         "Download",
         type="primary",
+        on_click=desliga_botao,
+        disabled=st.session_state.button_clicked
     )
 
     if retorno:
         resultado = download_youtube(lista_downloads, nome_arquivo, dados_video)
         if resultado:
             st.success(f"Download(s) concluído(s) na pasta {DIRETORIO}!")
-            sleep(5)
+            sleep(4)
             streamlit_js_eval(js_expressions="parent.window.location.reload()")
         else:
             st.warning("Nenhum item selecionado!")
