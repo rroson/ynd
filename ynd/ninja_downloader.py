@@ -179,7 +179,7 @@ if link:
         for i in range(len(lista_streaming)):
             checked = st.checkbox(f"{i+2} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
             if checked:
-                lista_downloads[lista_streaming[i+2].itag] = lista_streaming[i+2].resolution[-4:]
+                lista_downloads[lista_streaming[i].itag] = lista_streaming[i].resolution[-4:]
 
     def desliga_botao():
         st.session_state.button_clicked = True
