@@ -11,6 +11,7 @@ streamlit = "^1.37.1"
 pytube = "^15.0.0"
 moviepy = "^1.0.3"
 streamlit-js-eval = "^0.1.7"
+emoji = "^2.13.0"
 
 
 [build-system]

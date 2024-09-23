@@ -10,6 +10,7 @@ from moviepy.editor import VideoFileClip, AudioFileClip
 import re
 import os
 from time import sleep
+import emoji
 
 
 HOME = os.path.expanduser('~')
@@ -167,7 +168,8 @@ if link:
     
     st.divider()
     st.subheader("Marque as opções que deseja baixar e clique no botão Download:")
-    nome_arquivo = re.sub('[\\/:"*.@#!?<>|]+', '-', dados_video.title)
+    nome_arquivo_regex = re.sub('[\\/:"*.@#!?<>|]+', '-', dados_video.title)
+    nome_arquivo = emoji.replace_emoji(nome_arquivo_regex, replace='')
     st.text(f"Nome do arquivo: {nome_arquivo}")
 
     lista_downloads = {}
