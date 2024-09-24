@@ -152,7 +152,7 @@ if link:
     with col_a:
         st.image(dados_video.thumbnail_url)
     with col_b:
-        st.info(f"[{dados_video.title}]({dados_video.watch_url})")
+        # st.markdown(f"[{dados_video.title}]({dados_video.watch_url})")
     st.info(f"Duração: {dados_video.length} segundos")
     
     try:
