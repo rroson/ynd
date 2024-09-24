@@ -151,9 +151,9 @@ if link:
     col_a, col_b = st.columns(2)
     with col_a:
         st.image(dados_video.thumbnail_url)
-    # with col_b:
-        # st.markdown(f"[{dados_video.title}]({dados_video.watch_url})")
-        # st.info(f"Duração: {dados_video.length} segundos")
+    with col_b:
+        st.markdown(f"[{dados_video.title}]({dados_video.watch_url})")
+        st.info(f"Duração: {dados_video.length} segundos")
     
     try:
         lista_streaming = dados_video.streams.filter(file_extension='mp4').order_by('resolution')
