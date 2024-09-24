@@ -12,8 +12,8 @@ import os
 import emoji
 
 HOME = os.path.expanduser('~')
-if os.path.join(HOME, '1.Laboratorio/Alunos/Efeitos_Musicas'):
-    DIRETORIO = os.path.join(HOME, '1.Laboratorio/Alunos/Efeitos_Musicas')
+if os.path.join(HOME, 'Downloads'):
+    DIRETORIO = os.path.join(HOME, 'Downloads')
 else:
     DIRETORIO = HOME
 

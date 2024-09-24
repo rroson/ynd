@@ -1,3 +1,2 @@
 ToDO:
-# Resolver gravação de arquivo na pasta com streamlit ou
-# Carregar arquivo na tela para download
+# Trocar os.path por Pathlib e criar pasta Downloads se ela não existir
