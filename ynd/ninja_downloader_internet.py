@@ -9,13 +9,11 @@ from pytube import cipher
 from moviepy.editor import VideoFileClip, AudioFileClip
 import re
 import os
-from time import sleep
 import emoji
 
-
 HOME = os.path.expanduser('~')
-if os.path.join(HOME, 'Downloads'):
-    DIRETORIO = os.path.join(HOME, 'Downloads')
+if os.path.join(HOME, '1.Laboratorio/Alunos/Efeitos_Musicas'):
+    DIRETORIO = os.path.join(HOME, '1.Laboratorio/Alunos/Efeitos_Musicas')
 else:
     DIRETORIO = HOME
 
@@ -89,6 +87,8 @@ def unir_video_audio(arquivo_video, arquivo_audio):
     os.remove(video_path)
     os.remove(audio_path)
 
+    return(output_filename)
+
 def converter_mp3(arquivo_audio):
     audio_filename = arquivo_audio
     audio_path = os.path.join(DIRETORIO, audio_filename)
@@ -113,19 +113,17 @@ def download_youtube(lista_downloads, nome_arquivo, dados_video):
         for itag, stream in lista_downloads.items():
             if itag == 140:
                 nome_arquivo_audio = f"{nome_arquivo}.m4a"
-                with st.spinner('Baixando áudio, Agurade...'):
-                    dados_video.streams.get_by_itag(itag).download(output_path=DIRETORIO, filename=nome_arquivo_audio)
+                dados_video.streams.get_by_itag(itag).download(output_path=DIRETORIO, filename=nome_arquivo_audio)
                 nome_arquivo_audio = converter_mp3(nome_arquivo_audio)
                 key += 1
             else:
                 nome_arquivo_video = f"{nome_arquivo}_{stream}.mp4"
-                with st.spinner('Baixando Vídeo, Agurade...'):
-                    dados_video.streams.get_by_itag(itag).download(output_path=DIRETORIO, filename=nome_arquivo_video)
+                dados_video.streams.get_by_itag(itag).download(output_path=DIRETORIO, filename=nome_arquivo_video)
                 key += 1
         if key == 2:
-            unir_video_audio(nome_arquivo_video, nome_arquivo_audio)
-
-        return(True)
+            nome_arquivo_video = unir_video_audio(nome_arquivo_video, nome_arquivo_audio)
+            return(nome_arquivo_video)
+        return(nome_arquivo_audio)
 
 # //////////////////////// Front End ////////////////////////////
 col_a, col_b = st.columns([2, 3])
@@ -167,22 +165,27 @@ if link:
     audio = dados_video.streams.filter(only_audio=True).first()
     
     st.divider()
-    st.subheader("Marque as opções que deseja baixar e clique no botão Download:")
+    st.subheader("Somente (Áudio) será baixado a não ser que alguma opção de (Vídeo) seja selecionada:")
     nome_arquivo_regex = re.sub('[\\/:"*.@#!?<>|]+', '-', dados_video.title)
     nome_arquivo = emoji.replace_emoji(nome_arquivo_regex, replace='')
     st.text(f"Nome do arquivo: {nome_arquivo}")
 
     lista_downloads = {}
+    videos = []
 
     with st.container(border=True):
-        checked_audio = st.checkbox(f"{1} - Tipo: {audio.mime_type}  -  Itag: {audio.itag}", value=False)
+        checked_audio = st.checkbox(f"{1} - Tipo: {audio.mime_type}  -  Itag: {audio.itag}", value=True, disabled=True)
         if checked_audio:
             lista_downloads[audio.itag] = "Arquivo_de_Audio"
         for i in range(len(lista_streaming)):
-            checked = st.checkbox(f"{i+2} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
-            if checked:
-                lista_downloads[lista_streaming[i].itag] = lista_streaming[i].resolution[-4:]
-    
+            videos.append(f"{i+2} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}")
+        
+        escolha_video = st.radio("Selecione uma das opções de vídeo:", (videos), index=None)
+        if escolha_video != None:
+            itag = re.search(r'Itag: (\d+)', escolha_video).group(1)
+            resolucao = re.search(r'Resolução: (\d+p)', escolha_video).group(1)
+            lista_downloads[itag] = resolucao
+
     #Mostrar lista de downloads na tela
     st.text("Lista de downloads:")
     for itag, stream in lista_downloads.items():
@@ -191,15 +194,34 @@ if link:
     def desliga_botao():
         st.session_state.button_clicked = True
 
+    if 'button_clicked' not in st.session_state:
+        st.session_state.button_clicked = False
     retorno = st.button(
         "Download",
         type="primary",
+        on_click=desliga_botao,
+        disabled=st.session_state.button_clicked
     )
 
     if retorno:
         resultado = download_youtube(lista_downloads, nome_arquivo, dados_video)
         if resultado:
             st.success(f"Download(s) concluído(s) na pasta {DIRETORIO}!")
+            match resultado[-3:]:
+                case 'mp4':
+                    st.video(f"{DIRETORIO}/{resultado}")
+                case 'mp3':
+                    st.audio(f"{DIRETORIO}/{resultado}")
+            st.session_state.button_clicked = False
         else:
             st.warning("Nenhum item selecionado!")
+        
+        def reinicia_sessao():
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
+
+        fim = st.button(
+            "Reiniciar Sessão",
+            type="primary",
+            on_click=reinicia_sessao,
+        )
 

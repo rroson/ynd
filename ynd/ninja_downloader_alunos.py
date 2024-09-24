@@ -10,12 +10,11 @@ from moviepy.editor import VideoFileClip, AudioFileClip
 import re
 import os
 from time import sleep
-import emoji
 
 
 HOME = os.path.expanduser('~')
-if os.path.join(HOME, 'Downloads'):
-    DIRETORIO = os.path.join(HOME, 'Downloads')
+if os.path.join(HOME, '1.Laboratorio/Alunos/Efeitos_Musicas'):
+    DIRETORIO = os.path.join(HOME, '1.Laboratorio/Alunos/Efeitos_Musicas')
 else:
     DIRETORIO = HOME
 
@@ -168,21 +167,20 @@ if link:
     
     st.divider()
     st.subheader("Marque as opções que deseja baixar e clique no botão Download:")
-    nome_arquivo_regex = re.sub('[\\/:"*.@#!?<>|]+', '-', dados_video.title)
-    nome_arquivo = emoji.replace_emoji(nome_arquivo_regex, replace='')
+    nome_arquivo = re.sub('[\\/:"*.@#!?<>|]+', '-', dados_video.title)
     st.text(f"Nome do arquivo: {nome_arquivo}")
 
     lista_downloads = {}
 
     with st.container(border=True):
-        checked_audio = st.checkbox(f"{1} - Tipo: {audio.mime_type}  -  Itag: {audio.itag}", value=False)
+        checked_audio = st.checkbox(f"{1} - Tipo: {audio.mime_type}  -  Itag: {audio.itag}", value=True)
         if checked_audio:
             lista_downloads[audio.itag] = "Arquivo_de_Audio"
-        for i in range(len(lista_streaming)):
-            checked = st.checkbox(f"{i+2} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
-            if checked:
-                lista_downloads[lista_streaming[i].itag] = lista_streaming[i].resolution[-4:]
-    
+        # for i in range(len(lista_streaming)):
+        #     checked = st.checkbox(f"{i+2} - Tipo: {lista_streaming[i].mime_type}  -  Itag: {lista_streaming[i].itag}  -  Resolução: {lista_streaming[i].resolution}", value=False)
+        #     if checked:
+        #         lista_downloads[lista_streaming[i].itag] = lista_streaming[i].resolution[-4:]
+
     #Mostrar lista de downloads na tela
     st.text("Lista de downloads:")
     for itag, stream in lista_downloads.items():
@@ -191,15 +189,21 @@ if link:
     def desliga_botao():
         st.session_state.button_clicked = True
 
+    if 'button_clicked' not in st.session_state:
+        st.session_state.button_clicked = False
     retorno = st.button(
         "Download",
         type="primary",
+        on_click=desliga_botao,
+        disabled=st.session_state.button_clicked
     )
 
     if retorno:
         resultado = download_youtube(lista_downloads, nome_arquivo, dados_video)
         if resultado:
             st.success(f"Download(s) concluído(s) na pasta {DIRETORIO}!")
+            sleep(4)
+            streamlit_js_eval(js_expressions="parent.window.location.reload()")
         else:
             st.warning("Nenhum item selecionado!")
 
